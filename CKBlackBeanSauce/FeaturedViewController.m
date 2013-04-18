@@ -111,15 +111,8 @@
     self.tableView = tableView;
     [tableView release];
     
-    // 读取占位图（比较杯具的是，图片不是两倍大小会被忽略，只好手动来了）
-    if (CKINTERFACEISRETINA)
-    {
-        self.loadingImage = [UIImage imageNamed:@"loading_image@2x.png"];
-    }
-    else
-    {
-        self.loadingImage = [UIImage imageNamed:@"loading_image.png"];
-    }
+    // 读取占位图
+    self.loadingImage = [UIImage imageNamed:@"loading_image.png"];
     
     // 创建refreshLabel
     UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0.0, -70.0, 320.0, 70.0)];
@@ -266,7 +259,7 @@
             // 专辑缩略图地址
             album.bookAlbumThumbnailURLString = [node valueForKeyPath:@"subject.images.small"];
             // 专辑标题图地址
-            album.bookAlbumBannerURLString = [node valueForKeyPath:@"subject.images.large"];
+            album.bookAlbumBannerURLString = [node valueForKeyPath:@"subject.images.medium"];
             
             //NSLog(@"《%@》", album.albumName);
             
@@ -396,36 +389,39 @@
     if (!album.bookAlbumThumbnail)
     {
         // 获得请求地址
-        NSString *urlString = album.bookAlbumThumbnailURLString;
+        NSString *urlString = CKINTERFACEISRETINA ? album.bookAlbumBannerURLString : album.bookAlbumThumbnailURLString;
         
         UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:urlString]]];
         
-        // 缩放成70x100大小
+        // 缩放成70x100大小（非retina）或140x200（retina）
         CGFloat width = image.size.width;
         CGFloat height = image.size.height;
+        CGFloat preferredWidth = CKINTERFACEISRETINA ? 140.0 : 70.0;
+        CGFloat preferredHeight = CKINTERFACEISRETINA ? 200.0 : 100.0;
         //NSLog(@"%f, %f", width, height);
         CGFloat posX = 0.0;
         CGFloat posY = 0.0;
-        if (width/70.0 > height/100.0)
+        if ((width/preferredWidth) > (height/preferredHeight))
         {
-            height = 100.0*width/70.0;
-            width = 70.0;
-            posY = (100.0 - height)/2;  // 上下居中
+            height = height*preferredWidth/width;
+            width = preferredWidth;
+            posY = (preferredHeight - height)/2;  // 上下居中
         }
-        else if (width/70.0 < height/100.0)
+        else if (width/preferredWidth < height/preferredHeight)
         {
-            width = 70.0*height/100.0;
-            height = 100.0;
-            posX = 70.0 - width;    // 靠右
+            width = width*preferredHeight/height;
+            height = preferredHeight;
+            posX = preferredWidth - width;    // 靠右
         }
         else
         {
-            width = 70.0;
-            height = 100.0;
+            width = preferredWidth;
+            height = preferredHeight;
         }
         
         // draw cg image
-        CGSize size = CGSizeMake(70.0, 100.0);
+        //NSLog(@"%f, %f, %f, %f", posX, posY, width, height);
+        CGSize size = CGSizeMake(preferredWidth, preferredHeight);
         UIGraphicsBeginImageContext(size);
         [image drawInRect:CGRectMake(posX,posY,width,height)];
         
