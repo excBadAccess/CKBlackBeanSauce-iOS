@@ -1,5 +1,5 @@
 //
-//  AppDelegate.h
+//  HotViewController.h
 //  CKReader
 //
 //  Created by Tony Borner on 4/17/13.
@@ -8,8 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
-
-@property (strong, nonatomic) UIWindow *window;
+@interface HotViewController : UIViewController
 
 @end
