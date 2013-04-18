@@ -82,7 +82,7 @@
     self.view.backgroundColor = [UIColor whiteColor];
     
     // 设置当前界面的标题
-    self.navigationItem.title = @"精选图书";
+    self.navigationItem.title = @"电影频道";
     
     // 刷新按钮
     UIBarButtonItem *refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(refresh)];
@@ -90,12 +90,12 @@
     [refreshButton release];
     
     // 返回按钮
-    UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"精选" style:UIBarButtonItemStyleBordered target:nil action:nil];
+    UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"电影" style:UIBarButtonItemStyleBordered target:nil action:nil];
     self.navigationItem.backBarButtonItem = backButton;
     [backButton release];
     
     // 创建分类切换控件
-    UISegmentedControl *segmentControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:@"精选专题", @"最新上架", nil]];
+    UISegmentedControl *segmentControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:@"北美排行", @"评分最高", nil]];
     segmentControl.frame = CGRectMake(0.0, 0.0, 320.0, 50.0);
     segmentControl.segmentedControlStyle = UISegmentedControlNoSegment;
     segmentControl.selectedSegmentIndex = 0;
@@ -179,7 +179,7 @@
     BookAlbum *album = [self.albums objectAtIndex:indexPath.row];
     
     // 设置cell的属性
-    cell.textLabel.text = album.bookAlbumName;
+    cell.textLabel.text = [NSString stringWithFormat:@"%@. %@", album.bookAlbumID, album.bookAlbumName];
     cell.detailTextLabel.text = album.bookAlbumDescription;
     cell.detailTextLabel.numberOfLines = 2;
     if (album.bookAlbumThumbnail) {
@@ -240,7 +240,7 @@
     if (document)
     {
         // 获得代表图书专辑信息的结点数组
-        NSArray *nodes = [document valueForKeyPath:@"result.boardlist"];
+        NSArray *nodes = [document valueForKeyPath:@"subjects"];
         
         // 用来保存图书专辑信息的可变数组
         NSMutableArray *albums = [NSMutableArray array];
@@ -256,32 +256,17 @@
             BookAlbum *album = [[BookAlbum alloc] init];
             
             // 专辑编号
-            album.bookAlbumID = [node objectForKey:@"id"];
+            album.bookAlbumID = [node objectForKey:@"rank"];
             // 专辑名称
-            album.bookAlbumName = [node objectForKey:@"name"];
+            album.bookAlbumName = [node valueForKeyPath:@"subject.title"];
             // 专辑描述
-            album.bookAlbumDescription = [node objectForKey:@"intro"];
+            album.bookAlbumDescription = [node valueForKeyPath:@"subject.original_title"];
             // 专辑中图书数目
-            album.bookAlbumBookCount = [[node objectForKey:@"count"] integerValue];
+            album.bookAlbumBookCount = [[node objectForKey:@"box"] integerValue];
             // 专辑缩略图地址
-            album.bookAlbumThumbnailURLString = [node objectForKey:@"thumb"];
-            // 处理缩略图地址
-            if (album.bookAlbumThumbnailURLString)
-            {
-                if (CKINTERFACEISRETINA)
-                {
-                    // retina
-                    album.bookAlbumThumbnailURLString = [NSString stringWithFormat:@"%@%@%@", kShupengImageServerURLString, kShupengImageSizeExtraLarge, album.bookAlbumThumbnailURLString];
-                }
-                else
-                {
-                    // non retina
-                    album.bookAlbumThumbnailURLString = [NSString stringWithFormat:@"%@%@%@", kShupengImageServerURLString, kShupengImageSizeMedium, album.bookAlbumThumbnailURLString];
-                }
-                NSLog(@"%@", album.bookAlbumThumbnailURLString);
-            }
+            album.bookAlbumThumbnailURLString = [node valueForKeyPath:@"subject.images.small"];
             // 专辑标题图地址
-            album.bookAlbumBannerURLString = [node objectForKey:@"banner"];
+            album.bookAlbumBannerURLString = [node valueForKeyPath:@"subject.images.large"];
             
             //NSLog(@"《%@》", album.albumName);
             
@@ -388,10 +373,8 @@
     [self.downloader setDelegate:nil];
     
     // 创建网络请求对象
-    NSString *urlString = [kShupengAPIServerURLString stringByAppendingString:@"/board"];
+    NSString *urlString = [kDoubanAPIv2URLString stringByAppendingString:@"/movie/us_box"];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlString]];
-    
-    [request setValue:kCKReaderAppKey forHTTPHeaderField:kCKReaderUserAgentKey];
     
     // 创建新的下载工具对象，并开始网络请求
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
@@ -415,7 +398,41 @@
         // 获得请求地址
         NSString *urlString = album.bookAlbumThumbnailURLString;
         
-        album.bookAlbumThumbnail = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:urlString]]];
+        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:urlString]]];
+        
+        // 缩放成70x100大小
+        CGFloat width = image.size.width;
+        CGFloat height = image.size.height;
+        //NSLog(@"%f, %f", width, height);
+        CGFloat posX = 0.0;
+        CGFloat posY = 0.0;
+        if (width/70.0 > height/100.0)
+        {
+            height = 100.0*width/70.0;
+            width = 70.0;
+            posY = (100.0 - height)/2;  // 上下居中
+        }
+        else if (width/70.0 < height/100.0)
+        {
+            width = 70.0*height/100.0;
+            height = 100.0;
+            posX = 70.0 - width;    // 靠右
+        }
+        else
+        {
+            width = 70.0;
+            height = 100.0;
+        }
+        
+        // draw cg image
+        CGSize size = CGSizeMake(70.0, 100.0);
+        UIGraphicsBeginImageContext(size);
+        [image drawInRect:CGRectMake(posX,posY,width,height)];
+        
+        UIImage* newImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        
+        album.bookAlbumThumbnail = newImage;
     }
 }
 

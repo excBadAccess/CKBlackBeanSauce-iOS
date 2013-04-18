@@ -32,7 +32,7 @@
     FeaturedViewController *featured = [[FeaturedViewController alloc] init];
     // 精选界面的UINavigationController
     UINavigationController *navigation1 = [[UINavigationController alloc] initWithRootViewController:featured];
-    navigation1.tabBarItem.title = @"精选";
+    navigation1.tabBarItem.title = @"电影";
     navigation1.tabBarItem.image = [UIImage imageNamed:@"recommendation.png"];
     [featured release];
     
@@ -40,7 +40,7 @@
     CategoryViewController *category = [[CategoryViewController alloc] init];
     // 分类界面的UINavigationController
     UINavigationController *navigation2 = [[UINavigationController alloc] initWithRootViewController:category];
-    navigation2.tabBarItem.title = @"分类";
+    navigation2.tabBarItem.title = @"音乐";
     navigation2.tabBarItem.image = [UIImage imageNamed:@"category.png"];
     [category release];
     
@@ -48,7 +48,7 @@
     HotViewController *hot = [[HotViewController alloc] init];
     // 热门界面的UINavigationController
     UINavigationController *navigation3 = [[UINavigationController alloc] initWithRootViewController:hot];
-    navigation3.tabBarItem.title = @"排行";
+    navigation3.tabBarItem.title = @"图书";
     navigation3.tabBarItem.image = [UIImage imageNamed:@"favorites.png"];
     [hot release];
     
