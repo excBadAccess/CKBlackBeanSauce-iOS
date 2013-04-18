@@ -174,7 +174,7 @@
     // 设置cell的属性
     cell.textLabel.text = [NSString stringWithFormat:@"%@. %@", album.bookAlbumID, album.bookAlbumName];
     cell.detailTextLabel.text = album.bookAlbumDescription;
-    cell.detailTextLabel.numberOfLines = 2;
+    cell.detailTextLabel.numberOfLines = 3;
     if (album.bookAlbumThumbnail) {
         cell.imageView.image = album.bookAlbumThumbnail;
     }
@@ -366,7 +366,7 @@
     [self.downloader setDelegate:nil];
     
     // 创建网络请求对象
-    NSString *urlString = [kDoubanAPIv2URLString stringByAppendingString:@"/movie/us_box"];
+    NSString *urlString = [NSString stringWithFormat:@"%@%@?appkey=%@", kDoubanAPIv2URLString, @"/movie/us_box", kCKBlackBeanSauceAppKey];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlString]];
     
     // 创建新的下载工具对象，并开始网络请求
@@ -401,23 +401,27 @@
         //NSLog(@"%f, %f", width, height);
         CGFloat posX = 0.0;
         CGFloat posY = 0.0;
-        if ((width/preferredWidth) > (height/preferredHeight))
-        {
-            height = height*preferredWidth/width;
-            width = preferredWidth;
-            posY = (preferredHeight - height)/2;  // 上下居中
-        }
-        else if (width/preferredWidth < height/preferredHeight)
-        {
-            width = width*preferredHeight/height;
-            height = preferredHeight;
-            posX = preferredWidth - width;    // 靠右
-        }
-        else
-        {
-            width = preferredWidth;
-            height = preferredHeight;
-        }
+        
+//        if ((width/preferredWidth) > (height/preferredHeight))
+//        {
+//            height = height*preferredWidth/width;
+//            width = preferredWidth;
+//            posY = (preferredHeight - height)/2;  // 上下居中
+//        }
+//        else if (width/preferredWidth < height/preferredHeight)
+//        {
+//            width = width*preferredHeight/height;
+//            height = preferredHeight;
+//            posX = preferredWidth - width;    // 靠右
+//        }
+//        else
+//        {
+//            width = preferredWidth;
+//            height = preferredHeight;
+//        }
+        // 白边不好看，干脆裁了算了
+        height = height * preferredWidth/width;
+        width = preferredWidth;
         
         // draw cg image
         //NSLog(@"%f, %f, %f, %f", posX, posY, width, height);
